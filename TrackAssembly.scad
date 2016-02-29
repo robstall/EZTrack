@@ -1,29 +1,63 @@
 // All dimensions in mm
 
-treadWidth = 20;              // Width of the treads
-toothDiameter = 5;            // Diameter of the tooth on the link
-linkLength = 20;              // Length of a link
-linkThickness = 3;            // Thinkness of the tread bit of the lin
+$fn = 32;
 
 driveWheelWidth = 12;
 driveWheelDiameter = 40;      // Diameter of the drive wheel
 driveWheelTeeth = 12;         // Number of teeth on the drive wheel
 
+treadWidth = 20;              // Width of the treads
+toothDiameter = 5;            // Diameter of the tooth on the link
+pinDiameter = 4;
+linkLength = 20;              // Length of a link
+linkThickness = 3;            // Thinkness of the tread bit of the link
+
+plateOversize = 2;
+plateWidth = toothDiameter + plateOversize; 
+plateThickness = (treadWidth-driveWheelWidth)/2-1;
+
 hubDiameter = 6;              // Diameter of the center shaft on wheel
 rimThickness = 3;             // Thickness of the rim not including teeth
 spokeThickness = 3;           // Thickness of the spokes
 
-//linkBase();
+//plateBase();
+linkBase();
 //driveWheelBase();
-testLinksAroundWheel();
+//testLinksAroundWheel();
+
+module plateBase() {
+  plateThickness = (treadWidth-driveWheelWidth)/2-1;
+  toothSeperation = 2 * sin(360/driveWheelTeeth/2) *  driveWheelDiameter/2;
+  s = plateWidth+1;
+  
+  difference() {
+    union() {
+      translate([0, -plateWidth/2, 0])
+        cube([toothSeperation, plateWidth, plateThickness]);
+      cylinder(plateThickness, d=plateWidth);
+      translate([toothSeperation, 0, 0])
+        cylinder(plateThickness, d=plateWidth);
+    }
+    
+    translate([-s/2, -s/2, 0])
+      cube([s, s, plateThickness/2]);
+    translate([toothSeperation-s/2, -s/2, plateThickness/2])
+      cube([s, s, plateThickness/2]);
+    cylinder(plateThickness, d=pinDiameter);
+  }
+  translate([toothSeperation, 0, 0])
+    cylinder(plateThickness, d=pinDiameter+0.5);
+}
 
 module linkBase(rot=0) {
-  toothSeperation = 2 * sin(360/driveWheelTeeth/2) * driveWheelDiameter/2;
-  
   rotate([0,0,rot]) {
-    cylinder(treadWidth, d=toothDiameter);
-    translate([0, -toothDiameter/2, 0])
-      cube([toothSeperation, toothDiameter, treadWidth]);
+    translate([0, 0, plateThickness])
+      cylinder(treadWidth - 2*plateThickness, d=toothDiameter);
+    translate([0, 0, 0])
+      plateBase();
+    translate([0, 0, treadWidth])
+      mirror([0, 0, 1])
+        plateBase();
   }
 }
 
